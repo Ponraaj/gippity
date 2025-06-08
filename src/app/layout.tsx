@@ -1,0 +1,42 @@
+import type { Metadata } from "next";
+import { Roboto, Roboto_Mono } from "next/font/google";
+import "@/app/globals.css";
+import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/frontend/components/ui/ThemeProvider";
+
+const fontSans = Roboto({
+  subsets: ["latin"],
+});
+
+const fontMono = Roboto_Mono({
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Gippity",
+  description: "An Open-source AI Chat Application",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          "bg-background min-h-screen font-sans antialiased",
+          fontSans.className,
+          fontMono.className,
+        )}
+      >
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
