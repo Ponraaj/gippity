@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Roboto, Roboto_Mono } from "next/font/google";
+import { Geist,Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/frontend/components/ui/ThemeProvider";
 
-const fontSans = Roboto({
+const fontSans = Geist({
   subsets: ["latin"],
 });
 
-const fontMono = Roboto_Mono({
+const fontMono = Geist_Mono({
   subsets: ["latin"],
 });
 
