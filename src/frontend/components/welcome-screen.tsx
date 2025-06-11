@@ -1,8 +1,6 @@
-"use client";
-
-import { Sparkles, BookOpen, Code2, GraduationCap } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { useChat } from '../contexts/chat-context';
+import { Sparkles, BookOpen, Code2, GraduationCap } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { useChat } from "../contexts/chat-context";
 
 const suggestions = [
   "How does AI work?",
@@ -26,20 +24,20 @@ export function WelcomeScreen() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center max-w-3xl mx-auto">
+    <div className="mx-auto flex max-w-3xl flex-1 flex-col items-center justify-center p-8 text-center">
       <div className="mb-8">
-        <h1 className="text-4xl font-semibold mb-4 text-foreground">
+        <h1 className="text-foreground mb-4 text-4xl font-semibold">
           How can I help you, Code?
         </h1>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-4 mb-12">
+      <div className="mb-12 flex gap-4">
         {actionButtons.map((action) => (
           <Button
             key={action.label}
             variant="outline"
-            className="flex flex-col items-center gap-2 h-auto py-4 px-6 bg-card hover:bg-accent"
+            className="bg-card hover:bg-accent flex h-auto flex-col items-center gap-2 px-6 py-4"
           >
             <action.icon className={`h-6 w-6 ${action.color}`} />
             <span className="text-sm font-medium">{action.label}</span>
@@ -48,15 +46,15 @@ export function WelcomeScreen() {
       </div>
 
       {/* Suggestions */}
-      <div className="space-y-3 w-full max-w-md">
+      <div className="w-full max-w-md space-y-3">
         {suggestions.map((suggestion) => (
           <Button
             key={suggestion}
             variant="ghost"
-            className="w-full text-left justify-start bg-card hover:bg-accent border border-border p-4 h-auto"
+            className="bg-card hover:bg-accent border-border h-auto w-full justify-start border p-4 text-left"
             onClick={() => handleSuggestionClick(suggestion)}
           >
-            <span className="text-sm text-muted-foreground">{suggestion}</span>
+            <span className="text-muted-foreground text-sm">{suggestion}</span>
           </Button>
         ))}
       </div>

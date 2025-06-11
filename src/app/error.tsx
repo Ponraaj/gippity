@@ -29,7 +29,7 @@ export default function Error({
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            An error occurred while loading this page.
+            An error occurred while loading this screen.
           </p>
         </CardContent>
         <CardFooter>

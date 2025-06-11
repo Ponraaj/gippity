@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { WelcomeScreen } from "../components/welcome-screen";
@@ -27,12 +25,12 @@ export function ChatArea({ sidebarOpen }: ChatAreaProps) {
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col transition-all duration-300 ease-in-out",
+        "flex h-full flex-col transition-all duration-300 ease-in-out",
         sidebarOpen ? "lg:ml-0" : "lg:ml-0",
       )}
     >
-      <div className="relative flex-1">
-        <ScrollArea className="custom-scrollbar h-full" ref={scrollRef}>
+      <div className="flex-1 overflow-auto" ref={scrollRef}>
+        <ScrollArea className="custom-scrollbar h-full">
           <div className="flex min-h-full flex-col">
             {hasMessages ? (
               <MessageList messages={messages} />
