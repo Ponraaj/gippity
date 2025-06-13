@@ -65,15 +65,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "bg-sidebar border-sidebar-border fixed inset-y-0 left-0 z-50 w-64 border-r transition-transform duration-300 ease-in-out lg:relative",
+          "bg-[#2a2430] fixed inset-y-0 left-0 z-50 w-64 border-r-0 transition-transform duration-300 ease-in-out lg:relative text-foreground",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="border-sidebar-border flex items-center justify-between border-b p-4">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2">
-              <h1 className="text-primary text-lg font-semibold">Gippity</h1>
+              <h1 className="text-lg font-semibold">Gippity</h1>
             </div>
           </div>
 
@@ -97,7 +97,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 placeholder="Search your threads..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-background/50 pl-10"
+                className="bg-input pl-10 placeholder:text-primary-foreground"
               />
             </div>
           </div>
@@ -116,9 +116,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         key={chat.id}
                         variant="ghost"
                         className={cn(
-                          "h-auto w-full justify-start p-2 text-left text-sm font-normal",
+                          "h-auto w-full justify-start p-2 text-left text-sm font-normal text-foreground",
                           currentChat?.id === chat.id &&
-                            "bg-accent text-accent-foreground",
+                            "bg-secondary text-secondary-foreground",
                         )}
                         onClick={() => selectChat(chat.id)}
                       >
@@ -132,7 +132,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </ScrollArea>
 
           {/* Profile Section */}
-          <div className="border-sidebar-border border-t p-4">
+          <div className="p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
@@ -140,7 +140,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className="text-sm font-medium">Code Mavericks</div>
+                <div className="text-foreground text-sm font-medium">Code Mavericks</div>
                 <div className="text-muted-foreground text-xs">Free</div>
               </div>
               <Button variant="ghost" size="icon" className="h-8 w-8">

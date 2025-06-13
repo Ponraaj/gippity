@@ -11,7 +11,7 @@ export function TopBar({ onSidebarToggle, sidebarOpen }: TopBarProps) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="bg-topbar border-border relative z-50 flex h-12 items-center justify-between border-b px-4">
+    <div className="bg-topbar relative z-50 flex h-12 items-center justify-between px-4">
       {/* Left side */}
       <div className="flex items-center gap-3">
         <Button

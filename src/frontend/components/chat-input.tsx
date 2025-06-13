@@ -87,9 +87,9 @@ export function ChatInput() {
             {attachments.map((file, index) => (
               <div
                 key={index}
-                className="bg-secondary text-secondary-foreground flex items-center gap-2 rounded-lg px-3 py-1 text-sm"
+                className="bg-secondary text-primary flex items-center gap-2 rounded-lg px-3 py-1 text-sm"
               >
-                <Paperclip className="h-3 w-3" />
+                <Paperclip className="h-3 w-3 text-primary-foreground" />
                 {file.name}
                 <Button
                   size="sm"
@@ -108,7 +108,7 @@ export function ChatInput() {
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="bg-background border-border focus-within:ring-ring relative rounded-2xl border p-3 focus-within:ring-2">
+          <div className="bg-card border-card focus-within:ring-primary relative rounded-2xl border p-3 focus-within:ring-2">
             <Textarea
               ref={textareaRef}
               value={input}
@@ -118,11 +118,11 @@ export function ChatInput() {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Type your message here..."
-              className="max-h-[200px] min-h-[20px] resize-none border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="max-h-[200px] min-h-[20px] resize-none border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-primary-foreground"
               rows={1}
             />
 
-            <div className="border-border mt-3 flex items-center justify-between border-t pt-3">
+            <div className="border-primary bg-card mt-3 flex items-center justify-between border-t-0 pt-3">
               {/* Left side controls */}
               <div className="flex items-center gap-2">
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
@@ -142,7 +142,7 @@ export function ChatInput() {
                   pressed={webSearchEnabled}
                   onPressedChange={setWebSearchEnabled}
                   size="sm"
-                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground h-8 px-3"
+                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground h-8 px-3 hover:bg-primary/80 hover:text-primary-foreground"
                 >
                   <Search className="mr-1 h-3 w-3" />
                   Search
@@ -155,7 +155,7 @@ export function ChatInput() {
                   className="h-8 w-8 p-0"
                   onClick={handleFileAttachment}
                 >
-                  <Paperclip className="h-4 w-4" />
+                  <Paperclip className="h-4 w-4 text-primary-foreground" />
                 </Button>
               </div>
 
@@ -164,9 +164,9 @@ export function ChatInput() {
                 type="submit"
                 size="sm"
                 disabled={!input.trim() || isLoading}
-                className="bg-primary hover:bg-primary/90 h-8 w-8 p-0"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 w-9 p-0"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4 text-primary-foreground" />
               </Button>
             </div>
           </div>

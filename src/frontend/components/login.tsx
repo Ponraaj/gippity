@@ -7,12 +7,11 @@ export default function Login() {
   return (
     <div className="flex h-screen items-center justify-center">
       <Button
-        className=""
-        variant="outline"
+        className="bg-medium-purple text-almost-white-pink hover:bg-medium-purple/90"
         type="button"
         onClick={() => void signIn("google")}
       >
-        <GoogleIcon className="mr-2 h-4 w-4" /> Sign in with Google
+        <GoogleIcon className="mr-2 h-4 w-4 text-almost-white-pink" /> Sign in with Google
       </Button>
     </div>
   );

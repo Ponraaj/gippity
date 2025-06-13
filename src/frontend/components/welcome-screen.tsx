@@ -26,7 +26,7 @@ export function WelcomeScreen() {
   return (
     <div className="mx-auto flex max-w-3xl flex-1 flex-col items-center justify-center p-8 text-center">
       <div className="mb-8">
-        <h1 className="text-foreground mb-4 text-4xl font-semibold">
+        <h1 className="text-almost-white-pink mb-4 text-4xl font-semibold">
           How can I help you, Code?
         </h1>
       </div>
@@ -37,10 +37,10 @@ export function WelcomeScreen() {
           <Button
             key={action.label}
             variant="outline"
-            className="bg-card hover:bg-accent flex h-auto flex-col items-center gap-2 px-6 py-4"
+            className="bg-light-pink hover:bg-light-pink/80 flex h-auto flex-col items-center gap-2 px-6 py-4"
           >
-            <action.icon className={`h-6 w-6 ${action.color}`} />
-            <span className="text-sm font-medium">{action.label}</span>
+            <action.icon className="h-6 w-6 text-deep-purple-burgundy" />
+            <span className="text-deep-purple-burgundy text-sm font-medium">{action.label}</span>
           </Button>
         ))}
       </div>
@@ -51,10 +51,10 @@ export function WelcomeScreen() {
           <Button
             key={suggestion}
             variant="ghost"
-            className="bg-card hover:bg-accent border-border h-auto w-full justify-start border p-4 text-left"
+            className="bg-[#221d27] hover:bg-[#221d27]/80 h-auto w-full justify-start p-4 text-left"
             onClick={() => handleSuggestionClick(suggestion)}
           >
-            <span className="text-muted-foreground text-sm">{suggestion}</span>
+            <span className="text-deep-purple-burgundy text-sm">{suggestion}</span>
           </Button>
         ))}
       </div>
