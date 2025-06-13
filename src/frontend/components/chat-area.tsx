@@ -51,7 +51,7 @@ export function ChatArea({ sidebarOpen }: ChatAreaProps) {
         sidebarOpen ? "lg:ml-0" : "lg:ml-0",
       )}
     >
-      <div className="flex-1 overflow-auto" ref={scrollRef}>
+      <div className="flex-1 bg-[#221d27] overflow-auto" ref={scrollRef}>
         <ScrollArea className="custom-scrollbar h-full">
           <div className="flex min-h-full flex-col">
             {hasMessages ? (
