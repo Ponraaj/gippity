@@ -4,6 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
+        "deep-purple-burgundy": "#8B4B7A",
+        "medium-purple": "#A968A0",
+        "mauve-dusty-rose": "#C48BB8",
+        "light-pink": "#E8B5D8",
+        "pale-pink": "#F0D0E8",
+        "very-light-pink": "#F5E5F2",
+        "almost-white-pink": "#FAF2F8",
+        "darker-purple-background": "#7A4069",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

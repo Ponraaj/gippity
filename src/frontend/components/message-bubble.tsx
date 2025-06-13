@@ -31,7 +31,7 @@ export function MessageBubble({ message, isLast }: MessageBubbleProps) {
         <div
           className={`${
             isUser
-              ? "bg-primary text-primary-foreground ml-auto max-w-lg rounded-2xl rounded-tr-sm px-4 py-3"
+              ? "bg-[#2c2632] text-primary-foreground ml-auto max-w-lg rounded-2xl rounded-tr-sm px-4 py-3"
               : "bg-transparent"
           }`}
         >

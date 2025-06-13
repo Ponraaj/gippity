@@ -41,7 +41,7 @@ export function ChatArea({ sidebarOpen }: ChatAreaProps) {
         </ScrollArea>
       </div>
 
-      <div className="border-border bg-background/95 supports-backdrop-filter:bg-background/60 border-t backdrop-blur-sm">
+      <div className="bg-card border-t-0 supports-backdrop-filter:bg-background/60 backdrop-blur-sm">
         <ChatInput />
       </div>
     </div>

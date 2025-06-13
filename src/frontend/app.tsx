@@ -11,7 +11,7 @@ export default function App() {
   return (
     <Router>
       <AuthLoading>
-        <div className="flex h-screen items-center justify-center text-gray-500">
+        <div className="flex h-screen items-center justify-center text-foreground">
           Loading...
         </div>
       </AuthLoading>

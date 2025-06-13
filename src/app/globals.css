@@ -141,29 +141,31 @@
   }
 
   .dark {
-    --background: 240 6% 10%;
-    --foreground: 0 0% 98%;
-    --card: 240 6% 12%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 6% 12%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 314 75% 60%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 240 6% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 6% 16%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 240 6% 16%;
-    --accent-foreground: 314 75% 60%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 6% 20%;
-    --input: 240 6% 16%;
-    --ring: 314 75% 60%;
-    --sidebar: 240 6% 8%;
-    --sidebar-border: 240 6% 18%;
-    --topbar: 220 13% 18%;
-    --topbar-foreground: 0 0% 98%;
+    --background: #221d26;
+    --foreground: #f9f8fa;
+    --card: #2c2531;
+    --card-foreground: #f9f8fa;
+    --popover: #2c2531;
+    --popover-foreground: #f9f8fa;
+    --primary: #421729;
+    --primary-foreground: #e2bad1;
+    --secondary: #f9f8fa;
+    --secondary-foreground: #421729;
+    --muted: #2c2531;
+    --muted-foreground: #f9f8fa;
+    --accent: #421729;
+    --accent-foreground: #e2bad1;
+    --destructive: #ff4d4f;
+    --destructive-foreground: #f9f8fa;
+    --border: #2c2531;
+    --input: #2c2531;
+    --ring: #421729;
+    --sidebar: #191317;
+    --sidebar-border: #191317;
+    --topbar: #221d26;
+    --topbar-foreground: #f9f8fa;
+    --darker-purple-background: #221d26;
+    --very-light-pink-placeholder: #e2bad1;
   }
 }
 
@@ -329,3 +331,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+.dark {
+    --background: #221d26;
+    --foreground: #f9f8fa;
+    --card: #2c2531;
+    --card-foreground: #f9f8fa;
+    --popover: #2c2531;
+    --popover-foreground: #f9f8fa;
+    --primary: #421729;
+    --primary-foreground: #e2bad1;
+    --secondary: #f9f8fa;
+    --secondary-foreground: #421729;
+    --muted: #2c2531;
+    --muted-foreground: #f9f8fa;
+    --accent: #421729;
+    --accent-foreground: #e2bad1;
+    --destructive: #ff4d4f;
+    --destructive-foreground: #f9f8fa;
+    --border: #2c2531;
+    --input: #2c2531;
+    --ring: #421729;
+    --sidebar: #191317;
+    --sidebar-border: #191317;
+    --topbar: #221d26;
+    --topbar-foreground: #f9f8fa;
+    --darker-purple-background: #221d26;
+    --very-light-pink-placeholder: #e2bad1;
+  }
