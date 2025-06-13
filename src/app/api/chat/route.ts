@@ -1,7 +1,5 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamText, smoothStream } from "ai";
-import { headers } from "next/headers";
-import { getModelConfig, AIModel } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 60;
@@ -10,27 +8,11 @@ export const runtime = "edge";
 export async function POST(req: NextRequest) {
   try {
     const { messages, model } = await req.json();
-    const headersList = await headers();
 
-    const modelConfig = getModelConfig(model as AIModel);
-
-    const apiKey = headersList.get(modelConfig.headerKey) as string;
-
-    let aiModel;
-    switch (modelConfig.provider) {
-      case "google":
-        const google = createGoogleGenerativeAI({ apiKey });
-        aiModel = google(modelConfig.modelId);
-        break;
-      default:
-        return new Response(
-          JSON.stringify({ error: "Unsupported model provider" }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-    }
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_API_KEY,
+    });
+    const aiModel = google("gemini-2.0-flash");
 
     const result = streamText({
       model: aiModel,
@@ -39,7 +21,7 @@ export async function POST(req: NextRequest) {
         console.log("error", error);
       },
       system: `
-      You are Chat0, an ai assistant that can answer questions and help with tasks.
+      You are a helpful ai assistant that can answer questions and help with tasks.
       Be helpful and provide relevant information
       Be respectful and polite in all interactions.
       Be engaging and maintain a conversational tone.
