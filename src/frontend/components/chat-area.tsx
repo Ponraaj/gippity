@@ -13,35 +13,38 @@ interface ChatAreaProps {
   initialMessages?: Message[];
 }
 
-interface APIKeyStore {
-  getKey: (provider: string) => string | undefined;
-}
+// TODO: Select providers & models
+// for now it works!
 
-interface ModelStore {
-  selectedModel: string;
-  getModelConfig: () => {
-    headerKey: string;
-    provider: string;
-  };
-}
-
-const useAPIKeyStore = (): APIKeyStore => ({
-  getKey: () => process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
-
-const useModelStore = () => ({
-  selectedModel: "gpt-3.5-turbo",
-  getModelConfig: () => ({
-    headerKey: "Authorization",
-    provider: "openai",
-  }),
-});
-
-const createMessage = async (threadId: string, message: Message) => {
-  console.log("Saving message:", { threadId, message });
-};
-
-export function ChatArea({ sidebarOpen, threadId, initialMessages = [] }: ChatAreaProps) {
+// interface APIKeyStore {
+//   getKey: (provider: string) => string | undefined;
+// }
+//
+// interface ModelStore {
+//   selectedModel: string;
+//   getModelConfig: () => {
+//     headerKey: string;
+//     provider: string;
+//   };
+// }
+//
+// const useAPIKeyStore = (): APIKeyStore => ({
+//   getKey: () => process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+// });
+//
+// const useModelStore = () => ({
+//   selectedModel: "gpt-3.5-turbo",
+//   getModelConfig: () => ({
+//     headerKey: "Authorization",
+//     provider: "openai",
+//   }),
+// });
+//
+export function ChatArea({
+  sidebarOpen,
+  threadId,
+  initialMessages = [],
+}: ChatAreaProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { getKey } = useAPIKeyStore();
   const selectedModel = useModelStore().selectedModel;
@@ -63,11 +66,11 @@ export function ChatArea({ sidebarOpen, threadId, initialMessages = [] }: ChatAr
     experimental_throttle: 50,
     onFinish: async ({ parts }) => {
       if (!parts) return;
-      
+
       const aiMessage: Message = {
         id: uuidv4(),
-        role: 'assistant',
-        content: parts.join(''),
+        role: "assistant",
+        content: parts.join(""),
         createdAt: new Date(),
       };
 
@@ -78,7 +81,7 @@ export function ChatArea({ sidebarOpen, threadId, initialMessages = [] }: ChatAr
       }
     },
     headers: {
-      [modelConfig.headerKey]: getKey(modelConfig.provider) || '',
+      [modelConfig.headerKey]: getKey(modelConfig.provider) || "",
     },
     body: {
       model: selectedModel,
@@ -89,9 +92,12 @@ export function ChatArea({ sidebarOpen, threadId, initialMessages = [] }: ChatAr
     await originalAppend(message);
   };
 
-  const mappedStatus = status === "ready" ? "idle" : 
-                      status === "submitted" || status === "streaming" ? "loading" : 
-                      "error";
+  const mappedStatus =
+    status === "ready"
+      ? "idle"
+      : status === "submitted" || status === "streaming"
+        ? "loading"
+        : "error";
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -112,7 +118,7 @@ export function ChatArea({ sidebarOpen, threadId, initialMessages = [] }: ChatAr
         <ScrollArea className="custom-scrollbar h-full">
           <div className="flex min-h-full flex-col">
             {hasMessages ? (
-              <MessageList 
+              <MessageList
                 messages={messages}
                 status={mappedStatus}
                 setMessages={setMessages}
@@ -127,7 +133,7 @@ export function ChatArea({ sidebarOpen, threadId, initialMessages = [] }: ChatAr
         </ScrollArea>
       </div>
 
-      <div className="bg-card border-t-0 supports-backdrop-filter:bg-background/60 backdrop-blur-sm">
+      <div className="bg-card supports-backdrop-filter:bg-background/60 border-t-0 backdrop-blur-sm">
         <ChatInput
           threadId={threadId}
           input={input}
