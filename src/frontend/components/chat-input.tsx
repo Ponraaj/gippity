@@ -12,6 +12,7 @@ import {
 import { Toggle } from "../components/ui/toggle";
 import { useChat } from "../contexts/chat-context";
 import { toast } from "sonner";
+import { Message } from "ai";
 
 const models = [
   "Gemini 2.5 Flash",
@@ -20,15 +21,28 @@ const models = [
   "GPT-3.5 Turbo",
 ];
 
-export function ChatInput() {
-  const [input, setInput] = useState("");
+interface ChatInputProps {
+  threadId: string;
+  input: string;
+  status: "idle" | "loading" | "error";
+  append: (message: Message | { role: "user"; content: string }) => Promise<void>;
+  setInput: (input: string) => void;
+  stop: () => void;
+}
+
+export function ChatInput({ 
+  threadId, 
+  input, 
+  status, 
+  append, 
+  setInput, 
+  stop 
+}: ChatInputProps) {
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
-    sendMessage,
-    isLoading,
     selectedModel,
     setSelectedModel,
     webSearchEnabled,
@@ -37,7 +51,7 @@ export function ChatInput() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || status === "loading") return;
 
     const message = input.trim();
     setInput("");
@@ -48,7 +62,12 @@ export function ChatInput() {
       textareaRef.current.style.height = "auto";
     }
 
-    await sendMessage(message, attachments);
+    try {
+      await append({ role: "user", content: message });
+    } catch (error) {
+      toast.error("Failed to send message");
+      console.error(error);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -163,7 +182,7 @@ export function ChatInput() {
               <Button
                 type="submit"
                 size="sm"
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || status === "loading"}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 w-9 p-0"
               >
                 <Send className="h-4 w-4 text-primary-foreground" />

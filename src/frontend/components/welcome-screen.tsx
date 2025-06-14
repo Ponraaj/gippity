@@ -1,6 +1,10 @@
 import { Sparkles, BookOpen, Code2, GraduationCap } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { useChat } from "../contexts/chat-context";
+import { Message } from "ai";
+
+interface WelcomeScreenProps {
+  append: (message: Message | { role: "user"; content: string }) => Promise<void>;
+}
 
 const suggestions = [
   "How does AI work?",
@@ -16,18 +20,20 @@ const actionButtons = [
   { icon: GraduationCap, label: "Learn", color: "text-orange-500" },
 ];
 
-export function WelcomeScreen() {
-  const { sendMessage } = useChat();
-
-  const handleSuggestionClick = (suggestion: string) => {
-    sendMessage(suggestion);
+export function WelcomeScreen({ append }: WelcomeScreenProps) {
+  const handleSuggestionClick = async (suggestion: string) => {
+    try {
+      await append({ role: "user", content: suggestion });
+    } catch (error) {
+      console.error("Failed to send suggestion:", error);
+    }
   };
 
   return (
     <div className="mx-auto flex max-w-3xl flex-1 flex-col items-center justify-center p-8 text-center">
       <div className="mb-8">
         <h1 className="text-almost-white-pink mb-4 text-4xl font-semibold">
-          How can I help you, Code?
+          How can I help you today?
         </h1>
       </div>
 
