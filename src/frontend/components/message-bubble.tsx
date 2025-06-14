@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Message } from "../contexts/chat-context";
+import { Message } from "ai";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import { MarkdownRenderer } from "../components/markdown-renderer";
 import { User, Bot } from "lucide-react";
@@ -12,7 +12,7 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, isLast }: MessageBubbleProps) {
   const [mounted, setMounted] = useState(false);
   const isUser = message.role === "user";
-  console.log(isLast);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -45,8 +45,8 @@ export function MessageBubble({ message, isLast }: MessageBubbleProps) {
         <div
           className={`text-muted-foreground mt-2 text-xs ${isUser ? "text-right" : "text-left"}`}
         >
-          {mounted
-            ? message.timestamp.toLocaleTimeString([], {
+          {mounted && message.createdAt
+            ? new Date(message.createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })
