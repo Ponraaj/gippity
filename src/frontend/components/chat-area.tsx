@@ -1,104 +1,38 @@
 import { useEffect, useRef } from "react";
+import { useParams } from "react-router";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { WelcomeScreen } from "../components/welcome-screen";
 import { MessageList } from "../components/message-list";
 import { ChatInput } from "../components/chat-input";
-import { useChat, type Message, type CreateMessage } from "@ai-sdk/react";
-import { cn } from "@/lib/utils";
-import { v4 as uuidv4 } from "uuid";
+import { useChat } from "../context/chat-context";
+import { cn } from "../../lib/utils";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 interface ChatAreaProps {
   sidebarOpen: boolean;
-  threadId: string;
-  initialMessages?: Message[];
+  userId: Id<"users">; // Keep for potential future use
 }
 
-// TODO: Select providers & models
-// for now it works!
-
-// interface APIKeyStore {
-//   getKey: (provider: string) => string | undefined;
-// }
-//
-// interface ModelStore {
-//   selectedModel: string;
-//   getModelConfig: () => {
-//     headerKey: string;
-//     provider: string;
-//   };
-// }
-//
-// const useAPIKeyStore = (): APIKeyStore => ({
-//   getKey: () => process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-// });
-//
-// const useModelStore = () => ({
-//   selectedModel: "gpt-3.5-turbo",
-//   getModelConfig: () => ({
-//     headerKey: "Authorization",
-//     provider: "openai",
-//   }),
-// });
-//
-export function ChatArea({
-  sidebarOpen,
-  threadId,
-  initialMessages = [],
-}: ChatAreaProps) {
+export function ChatArea({ sidebarOpen }: ChatAreaProps) {
+  const { threadId } = useParams<{ threadId: string }>();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { getKey } = useAPIKeyStore();
-  const selectedModel = useModelStore().selectedModel;
-  const modelConfig = useModelStore().getModelConfig();
-
   const {
     messages,
     input,
-    status,
     setInput,
-    setMessages,
-    append: originalAppend,
+    handleSubmit,
+    isLoading,
     stop,
-    reload,
+    setCurrentThreadId,
     error,
-  } = useChat({
-    id: threadId,
-    initialMessages,
-    experimental_throttle: 50,
-    onFinish: async ({ parts }) => {
-      if (!parts) return;
+  } = useChat();
 
-      const aiMessage: Message = {
-        id: uuidv4(),
-        role: "assistant",
-        content: parts.join(""),
-        createdAt: new Date(),
-      };
+  // Sync thread ID
+  useEffect(() => {
+    setCurrentThreadId(threadId ? (threadId as Id<"threads">) : null);
+  }, [threadId, setCurrentThreadId]);
 
-      try {
-        await createMessage(threadId, aiMessage);
-      } catch (error) {
-        console.error("Failed to save message:", error);
-      }
-    },
-    headers: {
-      [modelConfig.headerKey]: getKey(modelConfig.provider) || "",
-    },
-    body: {
-      model: selectedModel,
-    },
-  });
-
-  const append = async (message: Message | CreateMessage) => {
-    await originalAppend(message);
-  };
-
-  const mappedStatus =
-    status === "ready"
-      ? "idle"
-      : status === "submitted" || status === "streaming"
-        ? "loading"
-        : "error";
-
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -106,6 +40,9 @@ export function ChatArea({
   }, [messages]);
 
   const hasMessages = messages.length > 0;
+
+  // Convert string error to Error object if needed
+  const errorObject = error ? new Error(error) : null;
 
   return (
     <div
@@ -119,28 +56,31 @@ export function ChatArea({
           <div className="flex min-h-full flex-col">
             {hasMessages ? (
               <MessageList
-                messages={messages}
-                status={mappedStatus}
-                setMessages={setMessages}
-                reload={reload}
-                error={error || null}
+                messages={messages.map((m) => ({
+                  id: m._id,
+                  role: m.role,
+                  content: m.content,
+                  isStreaming: m.isStreaming || false,
+                }))}
+                status={isLoading ? "loading" : "idle"}
+                setMessages={() => {}} // Not needed with AI SDK
+                reload={() => {}} // Can be implemented later if needed
+                error={errorObject} // Convert string to Error object
                 stop={stop}
               />
             ) : (
-              <WelcomeScreen append={append} />
+              <WelcomeScreen />
             )}
           </div>
         </ScrollArea>
       </div>
-
       <div className="bg-card supports-backdrop-filter:bg-background/60 border-t-0 backdrop-blur-sm">
         <ChatInput
-          threadId={threadId}
           input={input}
-          status={mappedStatus}
-          append={append}
           setInput={setInput}
+          onSubmit={handleSubmit}
           stop={stop}
+          isLoading={isLoading}
         />
       </div>
     </div>

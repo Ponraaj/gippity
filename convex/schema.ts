@@ -37,7 +37,7 @@ const schema = defineSchema({
     content: v.string(),
     model: v.optional(v.string()), // Specific model used
     tokenCount: v.optional(v.number()),
-    isStreaming: v.optional(v.boolean()),
+    isStreaming: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
