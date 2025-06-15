@@ -41,10 +41,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
+        /* Custom colors for light mode */
+        sidebar: "hsl(var(--sidebar))",
+        button: "hsl(var(--button))",
+        chatbox: "hsl(var(--chatbox))",
+        chattext: "hsl(var(--chat-text))",
+        /* You can now use bg-sidebar, bg-button, bg-chatbox, text-chattext, etc. */
       },
       borderRadius: {
         lg: `var(--radius)`,

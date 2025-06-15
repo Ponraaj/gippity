@@ -101,7 +101,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          " fixed inset-y-0  bg-[#140f13] left-0 z-50 w-64 border-r-0 transition-transform duration-300 ease-in-out lg:relative text-foreground",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r-0 transition-transform duration-300 ease-in-out lg:relative text-foreground bg-sidebar",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >

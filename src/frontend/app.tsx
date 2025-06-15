@@ -42,7 +42,7 @@ function AuthenticatedApp() {
 
   return (
     <ChatProvider userId={user._id}>
-      <div className="bg-[#2a2430] flex h-screen flex-col">
+      <div className="bg-background flex h-screen flex-col">
         <TopBar
           onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
           sidebarOpen={sidebarOpen}

@@ -31,12 +31,12 @@ export function MessageBubble({ message, isLast }: MessageBubbleProps) {
         <div
           className={`${
             isUser
-              ? "bg-[#2c2632] text-primary-foreground ml-auto max-w-lg rounded-2xl rounded-tr-sm px-4 py-3"
+              ? "chat-dialog-box ml-auto max-w-lg rounded-2xl rounded-tr-sm px-4 py-3"
               : "bg-transparent"
           }`}
         >
           {isUser ? (
-            <p className="text-sm">{message.content}</p>
+            <p className="chat-message-text text-sm">{message.content}</p>
           ) : (
             <MarkdownRenderer content={message.content} />
           )}
