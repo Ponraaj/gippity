@@ -1,6 +1,7 @@
 import { useChat } from "../context/chat-context"; // adjust path
 import { Sparkles, BookOpen, Code2, GraduationCap } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { useTheme } from "next-themes";
 
 const suggestions = [
   "How does AI work?",
@@ -17,16 +18,23 @@ const actionButtons = [
 ];
 
 export function WelcomeScreen() {
-  const { handleSubmit, setInput, isLoading } = useChat();
+  const { append, isLoading } = useChat();
+  const { theme } = useTheme();
 
   const handleSuggestionClick = async (text: string) => {
-    setInput(text);
-    handleSubmit(text);
+    try {
+      await append({ role: "user", content: text });
+    } catch (error) {
+      console.error("Failed to send suggestion:", error);
+    }
   };
 
   return (
     <div className="mx-auto flex max-w-3xl flex-1 flex-col items-center justify-center p-8 text-center">
-      <h1 className="text-almost-white-pink mb-8 text-4xl font-semibold">
+      <h1
+        className="mb-8 text-4xl font-semibold"
+        style={{ color: theme === "light" ? "#c66198" : undefined }}
+      >
         How can I help you today?
       </h1>
 
@@ -35,10 +43,24 @@ export function WelcomeScreen() {
           <Button
             key={action.label}
             variant="outline"
-            className="bg-light-pink hover:bg-light-pink/80 flex h-auto flex-col items-center gap-2 px-6 py-4"
+            className="flex h-auto flex-col items-center gap-2 px-6 py-4"
+            style={{
+              backgroundColor: theme === "light" ? "#f3e5f5" : "#2a2430",
+              borderColor: theme === "light" ? "#a84470" : "#3a333d",
+            }}
           >
-            <action.icon className="text-deep-purple-burgundy h-6 w-6" />
-            <span className="text-deep-purple-burgundy text-sm font-medium">
+            <action.icon
+              className="h-6 w-6"
+              style={{
+                color: theme === "light" ? "#c66198" : undefined,
+              }}
+            />
+            <span
+              className="text-sm font-medium"
+              style={{
+                color: theme === "light" ? "#77347b" : undefined,
+              }}
+            >
               {action.label}
             </span>
           </Button>
@@ -50,11 +72,19 @@ export function WelcomeScreen() {
           <Button
             key={suggestion}
             variant="ghost"
-            className="h-auto w-full justify-start bg-[#221d27] p-4 text-left hover:bg-[#221d27]/80"
+            className="h-auto w-full justify-start p-4 text-left"
             onClick={() => handleSuggestionClick(suggestion)}
             disabled={isLoading}
+            style={{
+              backgroundColor: theme === "light" ? "#fbeff8" : "#221d27",
+            }}
           >
-            <span className="text-deep-purple-burgundy text-sm">
+            <span
+              className="text-sm"
+              style={{
+                color: theme === "light" ? "#77347b" : undefined,
+              }}
+            >
               {suggestion}
             </span>
           </Button>

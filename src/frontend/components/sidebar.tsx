@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Settings, Trash2 } from "lucide-react";
+import { Search, Plus, X, LogOut } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { Avatar, AvatarImage } from "../components/ui/avatar";
 import { useChat } from "../context/chat-context";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { cn } from "../../lib/utils";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useTheme } from "next-themes";
+import { SettingsDialog } from "../components/settings-dialog";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -31,6 +33,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const { signOut } = useAuthActions();
   const user = useQuery(api.queries.getCurrentUser);
 
+  const { theme } = useTheme();
   const {
     threads,
     currentThread,
@@ -45,12 +48,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     setMounted(true);
   }, []);
 
-  const filteredThreads = threads.filter((thread: Thread) =>
-    thread.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredChats = threads.filter((chat) =>
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const groupedThreads = mounted
-    ? filteredThreads.reduce(
+    ? filteredChats.reduce(
         (groups: Record<string, Thread[]>, thread: Thread) => {
           const now = new Date();
           const threadDate = new Date(thread.updatedAt);
@@ -68,7 +71,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         },
         {} as Record<string, Thread[]>,
       )
-    : { Recent: filteredThreads };
+    : { Recent: filteredChats };
 
   const handleDeleteChat = async (
     e: React.MouseEvent,
@@ -90,35 +93,64 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile overlay - only shown when sidebar is open on non-large screens */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="bg-background/80 fixed inset-0 z-50 lg:hidden"
           onClick={onToggle}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar main container */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r-0 transition-transform duration-300 ease-in-out lg:relative text-foreground bg-sidebar",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "flex flex-col  transition-all duration-300 ease-in-out h-full",
+          // Mobile (non-lg) styles - fixed overlay behavior
+          "fixed inset-y-0 z-50",
+          isOpen ? "translate-x-0 w-72" : "-translate-x-full w-72",
+
+          // Desktop (lg and up) styles - part of flex layout, dynamic width
+          "lg:static lg:h-full",
+          isOpen ? "lg:w-72" : "lg:w-0 lg:overflow-hidden",
+          "lg:translate-x-0",
         )}
+        style={{ backgroundColor: isOpen && theme === "light" ? "#f3e5f5" : "#140f13" }}
       >
-        <div className="flex h-full flex-col">
+        <div 
+          className="flex h-full flex-col"
+          style={{ backgroundColor: theme === "light" ? "#f3e5f5" : "#140f13" }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold">Gippity</h1>
+            <div className="flex flex-1 items-center justify-center gap-2">
+              <h1 
+                className="text-2xl font-semibold"
+                style={{ color: theme === "light" ? "#c66198" : undefined }}
+              >Gippity</h1>
             </div>
+            {/* Close button only visible on non-large screens */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggle}
+              style={{
+                backgroundColor: theme === "light" ? "#a84470" : undefined,
+              }}
+            >
+              <X className="h-5 w-5" style={{ color: theme === "light" ? "white" : undefined }}/>
+            </Button>
           </div>
 
           {/* New Chat Button */}
           <div className="p-4">
             <Button
               onClick={createNewChat}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground w-full"
+              className="w-full"
               size="sm"
+              style={{
+                backgroundColor: theme === "light" ? "#a84470" : undefined,
+                color: theme === "light" ? "white" : undefined,
+              }}
             >
               <Plus className="mr-2 h-4 w-4" />
               New Chat
@@ -128,12 +160,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           {/* Search */}
           <div className="px-4 pb-4">
             <div className="relative">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+              <Search 
+                className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform"
+                style={{ color: theme === "light" ? "#c66198" : undefined }}
+              />
               <Input
                 placeholder="Search your threads..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-input placeholder:text-muted-foreground pl-10"
+                className="pl-10"
+                style={{
+                  backgroundColor: theme === "light" ? "#fbeff8" : undefined,
+                  color: theme === "light" ? "#77347b" : undefined,
+                }}
               />
             </div>
           </div>
@@ -167,10 +206,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           <Button
                             variant="ghost"
                             className={cn(
-                              "text-foreground h-auto w-full flex-1 justify-start p-2 pr-8 text-left text-sm font-normal",
-                              currentThread?._id === thread._id &&
-                                "bg-secondary text-secondary-foreground",
+                              "h-auto w-full flex-1 justify-start p-2 pr-8 text-left text-sm font-normal",
+                              currentThread?._id === thread._id && "bg-secondary",
                             )}
+                            style={{
+                              backgroundColor: theme === "light" ? "#fbeff8" : "#2a2430",
+                              color: theme === "light" ? "#77347b" : undefined,
+                            }}
                             onClick={() => selectChat(thread._id)}
                           >
                             <div className="truncate">{thread.title}</div>
@@ -180,8 +222,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             size="icon"
                             className="hover:bg-destructive hover:text-destructive-foreground absolute right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
                             onClick={(e) => handleDeleteChat(e, thread._id)}
+                            style={{
+                              backgroundColor: theme === "light" ? "#f3e5f5" : "#2a2430",
+                              color: theme === "light" ? "#77347b" : undefined,
+                            }}
                           >
-                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       ))}
@@ -190,7 +235,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 ))}
 
               {/* Empty states */}
-              {mounted && filteredThreads.length === 0 && searchQuery && (
+              {mounted && filteredChats.length === 0 && searchQuery && (
                 <div className="text-muted-foreground py-4 text-center text-sm">
                   No threads found
                 </div>
@@ -207,16 +252,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {user?.name
-                    ? user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)
-                    : user?.email?.slice(0, 2).toUpperCase() || "U"}
-                </AvatarFallback>
+              <AvatarImage src={user?.image} alt={user?.name || "User"} />
               </Avatar>
               <div className="flex-1">
                 <div className="text-foreground text-sm font-medium">
@@ -224,14 +260,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </div>
                 <div className="text-muted-foreground text-xs">Free</div>
               </div>
+              <SettingsDialog />
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
                 onClick={handleSignOut}
                 title="Sign out"
+                style={{
+                  backgroundColor: theme === "light" ? "#a84470" : "#2a2430",
+                  color: theme === "light" ? "white" : undefined,
+                }}
               >
-                <Settings className="h-4 w-4" />
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
