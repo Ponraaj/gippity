@@ -1,59 +1,26 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
-import { useQuery, useMutation } from "convex/react";
-import { useChat as useAIChat } from "@ai-sdk/react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
+import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { cacheService } from "@/dexie/cache-service";
 import type { Id } from "../../../convex/_generated/dataModel";
-
-interface Message {
-  _id: Id<"messages">;
-  _creationTime: number;
-  threadId: Id<"threads">;
-  userId: Id<"users">;
-  role: "user" | "assistant" | "system";
-  content: string;
-  isStreaming?: boolean;
-  tokenCount?: number;
-  model?: string;
-  createdAt: number;
-  updatedAt: number;
-}
-
-interface Thread {
-  _id: Id<"threads">;
-  _creationTime: number;
-  title: string;
-  userId: Id<"users">;
-  createdAt: number;
-  updatedAt: number;
-}
+import { CachedThread } from "@/dexie/db";
 
 interface ChatContextType {
-  messages: Message[];
-  input: string;
-  setInput: (input: string) => void;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  isLoading: boolean; // Keep for backward compatibility, derived from status
-  status: "submitted" | "streaming" | "ready" | "error"; // Modern status field
-  stop: () => void;
-  currentThread: Thread | null;
-  isLoadingMessages: boolean;
-  error: string | null;
   // Sidebar functionality
-  threads: Thread[];
+  threads: CachedThread[];
+  isLoadingThreads: boolean;
   createNewChat: () => void;
   selectChat: (threadId: Id<"threads">) => void;
   deleteChat: (threadId: Id<"threads">) => void;
+  refreshThreads: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  currentThreadId: Id<"threads"> | null;
-  setCurrentThreadId: (id: Id<"threads"> | null) => void;
-  // AI SDK integration - Fixed type
-  append: (message: {
-    role: "user";
-    content: string;
-  }) => Promise<string | null | undefined>;
-  reload: () => void;
+  error: string | null;
+  // New sync-related functionality
+  isOnline: boolean;
+  lastSyncTime: number | null;
+  forceSyncThreads: () => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -65,121 +32,138 @@ export function ChatProvider({
   children: React.ReactNode;
   userId: Id<"users">;
 }) {
-  const { threadId } = useParams<{ threadId: string }>();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentThreadId, setCurrentThreadId] = useState<Id<"threads"> | null>(
-    threadId ? (threadId as Id<"threads">) : null,
-  );
+  const [threads, setThreads] = useState<CachedThread[]>([]);
+  const [isLoadingThreads, setIsLoadingThreads] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
 
-  // Get all user threads for the sidebar
-  const threads = useQuery(api.queries.getUserThreads) || [];
-
-  // Get current thread info
-  const currentThread = threads.find((t) => t._id === currentThreadId) || null;
-
-  // Get messages for the current thread
-  const dbMessages =
-    useQuery(
-      api.queries.getThreadMessages,
-      currentThreadId ? { threadId: currentThreadId } : "skip",
-    ) || [];
-
-  // Check if we're still loading messages
-  const isLoadingMessages = currentThreadId ? dbMessages === undefined : false;
-
-  // Convert database messages to AI SDK format
-  const aiMessages = dbMessages.map((msg) => ({
-    id: msg._id,
-    role: msg.role as "user" | "assistant" | "system",
-    content: msg.content,
-  }));
-
-  // Use AI SDK's useChat hook
-  const {
-    messages: streamMessages,
-    input,
-    setInput,
-    handleSubmit: handleAISubmit,
-    status, // Modern replacement for deprecated isLoading
-    stop,
-    append,
-    reload,
-  } = useAIChat({
-    api: "/api/chat",
-    initialMessages: aiMessages,
-    body: {
-      userId,
-      threadId: currentThreadId,
-      model: "gemini-2.0-flash",
-    },
-    onResponse: async (response) => {
-      // Handle the custom headers from your API
-      const newThreadId = response.headers.get("X-Thread-ID");
-      // Removed unused messageId variable
-      if (newThreadId && !currentThreadId) {
-        setCurrentThreadId(newThreadId as Id<"threads">);
-        navigate(`/chat/${newThreadId}`);
-      }
-    },
-    onError: (error) => {
-      console.error("Chat error:", error);
-      setError("Failed to send message. Please try again.");
-    },
-  });
-
-  // Convert status to boolean for backward compatibility
-  const isStreamLoading = status === "submitted" || status === "streaming";
+  // Refs to manage cleanup
+  const watcherCleanupRef = useRef<(() => void) | null>(null);
+  const periodicSyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mutations
   const deleteThreadMutation = useMutation(api.threads.deleteThread);
 
-  // Reset error when thread changes
+  // Monitor online status
   useEffect(() => {
-    setError(null);
-  }, [threadId]);
+    const handleOnline = () => {
+      setIsOnline(true);
+      // Trigger sync when coming back online
+      if (userId) {
+        loadThreads(false);
+      }
+    };
 
-  // Update currentThreadId when URL changes
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [userId]);
+
+  // Set up real-time watching and initial load
   useEffect(() => {
-    const newThreadId = threadId ? (threadId as Id<"threads">) : null;
-    setCurrentThreadId(newThreadId);
-  }, [threadId]);
+    if (!userId) return;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim() || isStreamLoading) return;
+    // Initial load
+    loadThreads();
 
-    setError(null);
+    // Set up real-time watcher
+    watcherCleanupRef.current = cacheService.watchThreads(
+      userId,
+      (updatedThreads) => {
+        setThreads(updatedThreads);
+        setLastSyncTime(Date.now());
+      },
+    );
+
+    // Set up periodic sync (every 5 minutes, but only if online)
+    periodicSyncIntervalRef.current = setInterval(
+      () => {
+        if (isOnline) {
+          loadThreads(false); // Silent refresh
+        }
+      },
+      5 * 60 * 1000,
+    );
+
+    return () => {
+      // Cleanup watcher
+      if (watcherCleanupRef.current) {
+        watcherCleanupRef.current();
+        watcherCleanupRef.current = null;
+      }
+
+      // Cleanup periodic sync
+      if (periodicSyncIntervalRef.current) {
+        clearInterval(periodicSyncIntervalRef.current);
+        periodicSyncIntervalRef.current = null;
+      }
+    };
+  }, [userId, isOnline]);
+
+  const loadThreads = async (showLoading = true, forceRefresh = false) => {
+    if (!userId) return;
+
     try {
-      // Removed unnecessary await since handleAISubmit handles the async operation
-      handleAISubmit(e);
+      if (showLoading) setIsLoadingThreads(true);
+
+      // Use the new sync service with smart caching
+      const cachedThreads = await cacheService.getThreads(userId, forceRefresh);
+
+      setThreads(cachedThreads);
+      setLastSyncTime(Date.now());
+      setError(null);
     } catch (error) {
-      console.error("Error sending message:", error);
-      setError("Failed to send message. Please try again.");
+      console.error("Error loading threads:", error);
+      setError("Failed to load chats. Please try again.");
+
+      // If we're offline, try to show cached data
+      if (!isOnline) {
+        try {
+          const cachedThreads = await cacheService.getThreads(userId, false);
+          setThreads(cachedThreads);
+          setError("You're offline. Showing cached chats.");
+        } catch (cacheError) {
+          console.error("Error loading cached threads:", cacheError);
+        }
+      }
+    } finally {
+      if (showLoading) setIsLoadingThreads(false);
     }
   };
 
-  // Use streaming messages if available, otherwise fall back to database messages
-  const messages =
-    streamMessages.length > 0
-      ? streamMessages.map((msg) => ({
-          _id: msg.id as Id<"messages">,
-          _creationTime: Date.now(),
-          threadId: currentThreadId!,
-          userId,
-          role: msg.role as "user" | "assistant" | "system",
-          content: msg.content,
-          isStreaming: false,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        }))
-      : dbMessages;
+  const refreshThreads = () => {
+    loadThreads(true, false); // Show loading, but use smart caching
+  };
 
-  // Sidebar functions
+  const forceSyncThreads = async () => {
+    if (!isOnline) {
+      setError("Cannot sync while offline");
+      return;
+    }
+
+    try {
+      setIsLoadingThreads(true);
+      await loadThreads(false, true); // Force refresh from server
+      setError(null);
+    } catch (error) {
+      console.error("Error forcing sync:", error);
+      setError("Failed to sync chats. Please try again.");
+    } finally {
+      setIsLoadingThreads(false);
+    }
+  };
+
   const createNewChat = () => {
     navigate("/");
-    setCurrentThreadId(null);
   };
 
   const selectChat = (threadId: Id<"threads">) => {
@@ -188,41 +172,61 @@ export function ChatProvider({
 
   const deleteChat = async (threadId: Id<"threads">) => {
     try {
-      await deleteThreadMutation({ threadId });
-      // If we're currently viewing the deleted thread, navigate to home
-      if (threadId === currentThreadId) {
-        navigate("/");
-        setCurrentThreadId(null);
+      // Optimistically remove from UI
+      setThreads((prev) => prev.filter((t) => t._id !== threadId));
+
+      // Remove from cache first (this handles both cache and IndexedDB)
+      await cacheService.deleteThread(threadId);
+
+      // If online, also delete from Convex
+      if (isOnline) {
+        try {
+          await deleteThreadMutation({ threadId });
+        } catch (convexError) {
+          console.warn(
+            "Failed to delete from server, will retry on sync:",
+            convexError,
+          );
+          // Don't throw here - the cache deletion succeeded
+          // The server deletion will be handled on next sync
+        }
       }
+
+      setError(null);
     } catch (error) {
       console.error("Error deleting thread:", error);
       setError("Failed to delete chat. Please try again.");
+
+      // Reload threads on error to restore state
+      loadThreads(false);
     }
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (watcherCleanupRef.current) {
+        watcherCleanupRef.current();
+      }
+      if (periodicSyncIntervalRef.current) {
+        clearInterval(periodicSyncIntervalRef.current);
+      }
+    };
+  }, []);
+
   const contextValue: ChatContextType = {
-    messages,
-    input,
-    setInput,
-    handleSubmit,
-    isLoading: isStreamLoading, // Backward compatibility
-    status, // Modern status field
-    stop,
-    currentThread,
-    isLoadingMessages,
-    error,
-    // Sidebar functionality
     threads,
+    isLoadingThreads,
     createNewChat,
     selectChat,
     deleteChat,
+    refreshThreads,
     searchQuery,
     setSearchQuery,
-    currentThreadId,
-    setCurrentThreadId,
-    // AI SDK integration
-    append,
-    reload,
+    error,
+    isOnline,
+    lastSyncTime,
+    forceSyncThreads,
   };
 
   return (

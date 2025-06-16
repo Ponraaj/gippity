@@ -1,3 +1,4 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -59,5 +60,43 @@ export const finalizeMessage = mutation({
       tokenCount: args.tokenCount ? args.tokenCount : 0,
       updatedAt: now,
     });
+  },
+});
+
+export const saveMessage = mutation({
+  args: {
+    messageId: v.id("messages"),
+    threadId: v.id("threads"),
+    content: v.string(),
+    role: v.union(
+      v.literal("user"),
+      v.literal("assistant"),
+      v.literal("system"),
+    ),
+    tokenCount: v.optional(v.number()),
+    isStreaming: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const message = await ctx.db.get(args.messageId);
+    if (!message) {
+      // If message doesn't exist, create it
+      const userId = await getAuthUserId(ctx);
+      if (!userId) throw new Error("Unauthorized");
+      
+      return await ctx.db.insert("messages", {
+        ...args,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+      });
+    } else {
+      // Update existing message
+      await ctx.db.patch(args.messageId, {
+        ...args,
+        updatedAt: now,
+      });
+      return args.messageId;
+    }
   },
 });

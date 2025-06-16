@@ -12,10 +12,11 @@ export const getCurrentUser = query({
 });
 
 export const getUserThreads = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
+    if (userId !== args.userId) return []; // Only allow users to access their own threads
 
     return await ctx.db
       .query("threads")

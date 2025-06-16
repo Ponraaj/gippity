@@ -10,7 +10,12 @@ export const runtime = "edge";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-function generateTitle(messages: any[]): string {
+interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+function generateTitle(messages: ChatMessage[]): string {
   const firstUserMessage = messages.find((msg) => msg.role === "user");
   if (!firstUserMessage) return "New Conversation";
 
@@ -36,9 +41,12 @@ export async function POST(req: NextRequest) {
 
     let currentThreadId = threadId;
     let messageId: Id<"messages"> | null = null;
-    let accumulatedContent = "";
     let chunkBuffer = "";
-    const CHUNK_SIZE = 50;
+    const CHUNK_SIZE = 20;
+    let lastUpdateTime = Date.now();
+    const UPDATE_INTERVAL = 100;
+    let isUpdating = false;
+    let pendingChunks: string[] = [];
 
     if (!currentThreadId) {
       const title = generateTitle(messages);
@@ -71,6 +79,30 @@ export async function POST(req: NextRequest) {
       tokenCount: 0,
     });
 
+    // Process chunks sequentially
+    const processChunks = async () => {
+      if (isUpdating || pendingChunks.length === 0) return;
+      
+      isUpdating = true;
+      try {
+        const chunk = pendingChunks.shift();
+        if (chunk && messageId) {
+          await convex.mutation(api.messages.appendMessageChunk, {
+            messageId,
+            contentChunk: chunk,
+          });
+        }
+      } catch (error) {
+        console.error("Error saving chunk to Convex:", error);
+      } finally {
+        isUpdating = false;
+        // Process next chunk if any
+        if (pendingChunks.length > 0) {
+          setTimeout(processChunks, 50); // Add small delay between chunks
+        }
+      }
+    };
+
     const result = streamText({
       model: aiModel,
       messages,
@@ -80,35 +112,36 @@ export async function POST(req: NextRequest) {
       onChunk: ({ chunk }) => {
         if (chunk.type === "text-delta" && messageId) {
           const delta = chunk.textDelta;
-          accumulatedContent += delta;
           chunkBuffer += delta;
 
-          if (chunkBuffer.length >= CHUNK_SIZE) {
+          const now = Date.now();
+          if (chunkBuffer.length >= CHUNK_SIZE || now - lastUpdateTime >= UPDATE_INTERVAL) {
             const chunkToSend = chunkBuffer;
-            chunkBuffer = ""; // Reset buffer immediately
+            chunkBuffer = "";
+            lastUpdateTime = now;
 
-            convex
-              .mutation(api.messages.appendMessageChunk, {
-                messageId,
-                contentChunk: chunkToSend,
-              })
-              .catch((error) => {
-                console.error("Error saving chunk to Convex:", error);
-              });
+            // Add chunk to pending queue
+            pendingChunks.push(chunkToSend);
+            // Start processing if not already processing
+            if (!isUpdating) {
+              processChunks();
+            }
           }
         }
       },
-      onFinish: async ({ text, finishReason, usage }) => {
+      onFinish: async ({ text, usage }) => {
         try {
-          // Send any remaining buffer content
+          // Process any remaining chunks
           if (chunkBuffer.length > 0 && messageId) {
-            await convex.mutation(api.messages.appendMessageChunk, {
-              messageId,
-              contentChunk: chunkBuffer,
-            });
+            pendingChunks.push(chunkBuffer);
+            chunkBuffer = "";
           }
 
-          // Finalize the message
+          // Wait for all chunks to be processed
+          while (pendingChunks.length > 0 || isUpdating) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+
           if (messageId) {
             const tokenCount = usage?.totalTokens || text.split(" ").length;
             await convex.mutation(api.messages.finalizeMessage, {
