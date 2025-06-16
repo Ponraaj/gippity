@@ -10,13 +10,11 @@ interface MessageListProps {
   stop: () => void;
 }
 
-export function MessageList({ 
-  messages, 
-  status, 
-  setMessages, 
-  reload, 
-  error, 
-  stop 
+export function MessageList({
+  messages,
+  status,
+  reload,
+  error,
 }: MessageListProps) {
   return (
     <div className="mx-auto w-full max-w-4xl flex-1 space-y-6 p-4">
@@ -29,15 +27,17 @@ export function MessageList({
       ))}
       {status === "loading" && (
         <div className="flex justify-center">
-          <div className="animate-pulse text-muted-foreground">AI is thinking...</div>
+          <div className="text-muted-foreground animate-pulse">
+            AI is thinking...
+          </div>
         </div>
       )}
       {error && (
-        <div className="flex flex-col items-center gap-2 text-destructive">
+        <div className="text-destructive flex flex-col items-center gap-2">
           <p>Error: {error.message}</p>
-          <button 
+          <button
             onClick={reload}
-            className="text-sm underline hover:text-destructive/80"
+            className="hover:text-destructive/80 text-sm underline"
           >
             Try again
           </button>
