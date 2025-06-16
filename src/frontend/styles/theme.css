@@ -1,0 +1,48 @@
+:root {
+  --background: #faf4f9;
+  --foreground: #ba4081;
+  --card: #fbeef8;
+  --card-foreground: #77347b;
+  --popover: #fbeef8;
+  --popover-foreground: #77347b;
+  --primary: #aa4672;
+  --primary-foreground: #ffffff;
+  --secondary: #140f13;
+  --secondary-foreground: #77347b;
+  --muted: #f2e1f4;
+  --muted-foreground: #77347b;
+  --accent: #f2e1f4;
+  --accent-foreground: #77347b;
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: #ffffff;
+  --border: #f2e1f4;
+  --input: #f2e1f4;
+  --ring: #aa4672;
+  --radius: 0.625rem;
+  --gradient-noise-top: 15 15% 10%; /* A dark greyish color for light mode */
+  --chat-border: 15 15% 20%; /* A slightly lighter dark grey for light mode */
+}
+
+.dark {
+  --background: 285 15% 7%; /* Set background to match top bar color */
+  --foreground: #ffffff;
+  --card: #2a2a2a;
+  --card-foreground: #ffffff;
+  --popover: #2a2a2a;
+  --popover-foreground: #ffffff;
+  --primary: #bb86fc;
+  --primary-foreground: #000000;
+  --secondary: #140f13;
+  --secondary-foreground: #ffffff;
+  --muted: #2a2a2a;
+  --muted-foreground: #a0a0a0;
+  --accent: #3a3a3a;
+  --accent-foreground: #ffffff;
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: #ffffff;
+  --border: #404040;
+  --input: #404040;
+  --ring: #bb86fc;
+  --gradient-noise-top: 285 15% 7%; /* Exact HSL for #140f13 */
+  --chat-border: 290 80% 60%; /* Vibrant pink/purple for borders/accents */
+}

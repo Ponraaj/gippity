@@ -6,7 +6,9 @@ import { MessageList } from "../components/message-list";
 import { ChatInput } from "../components/chat-input";
 import { useChat } from "../context/chat-context";
 import { cn } from "../../lib/utils";
-import type { Id } from "../../../convex/_generated/dataModel";
+import { Id } from "../../../convex/_generated/dataModel";
+// import type { Id } from "../../../convex/_generated/dataModel";
+import { useTheme } from "next-themes";
 
 interface ChatAreaProps {
   sidebarOpen: boolean;
@@ -16,6 +18,8 @@ interface ChatAreaProps {
 export function ChatArea({ sidebarOpen }: ChatAreaProps) {
   const { threadId } = useParams<{ threadId: string }>();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+
   const {
     messages,
     input,
@@ -51,7 +55,11 @@ export function ChatArea({ sidebarOpen }: ChatAreaProps) {
         sidebarOpen ? "lg:ml-0" : "lg:ml-0",
       )}
     >
-      <div className="flex-1 overflow-auto" ref={scrollRef}>
+      <div 
+        className="flex-1 overflow-auto"
+        ref={scrollRef}
+        style={{ backgroundColor: theme === "light" ? "#f9f3f8" : undefined }}
+      >
         <ScrollArea className="custom-scrollbar h-full">
           <div className="flex min-h-full flex-col">
             {hasMessages ? (
@@ -74,7 +82,11 @@ export function ChatArea({ sidebarOpen }: ChatAreaProps) {
           </div>
         </ScrollArea>
       </div>
-      <div className="bg-card supports-backdrop-filter:bg-background/60 border-t-0 backdrop-blur-sm">
+
+      <div 
+        className="supports-backdrop-filter:bg-background/60 border-t-0 backdrop-blur-sm"
+        style={{ backgroundColor: theme === "light" ? "#fbeff8" : undefined }}
+      >
         <ChatInput
           input={input}
           setInput={setInput}

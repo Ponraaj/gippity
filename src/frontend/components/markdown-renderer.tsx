@@ -37,7 +37,10 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   };
 
   return (
-    <div className="markdown-content">
+    <div 
+      className="markdown-content"
+      style={{ color: theme === "light" ? "#77347b" : undefined }}
+    >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

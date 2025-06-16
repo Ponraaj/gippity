@@ -42,31 +42,33 @@ function AuthenticatedApp() {
 
   return (
     <ChatProvider userId={user._id}>
-      <div className="bg-background flex h-screen flex-col">
-        <TopBar
-          onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
-          sidebarOpen={sidebarOpen}
+      <div className="flex h-screen">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar
-            isOpen={sidebarOpen}
-            onToggle={() => setSidebarOpen(!sidebarOpen)}
+        <div className="flex flex-1 flex-col">
+          <TopBar
+            onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
           />
-          <div className="flex-1 overflow-auto">
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <ChatArea sidebarOpen={sidebarOpen} userId={user._id} />
-                }
-              />
-              <Route
-                path="/chat/:threadId"
-                element={
-                  <ChatArea sidebarOpen={sidebarOpen} userId={user._id} />
-                }
-              />
-            </Routes>
+          <div className="flex flex-1 overflow-hidden">
+
+            <div className="flex-1 overflow-auto">
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <ChatArea sidebarOpen={sidebarOpen} userId={user._id} />
+                  }
+                />
+                <Route
+                  path="/chat/:threadId"
+                  element={
+                    <ChatArea sidebarOpen={sidebarOpen} userId={user._id} />
+                  }
+                />
+              </Routes>
+            </div>
           </div>
         </div>
       </div>
