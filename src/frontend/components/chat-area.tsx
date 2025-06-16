@@ -6,6 +6,7 @@ import { WelcomeScreen } from "../components/welcome-screen";
 import { MessageList } from "../components/message-list";
 import { ChatInput } from "../components/chat-input";
 import { cn } from "../../lib/utils";
+import { useTheme } from "next-themes";
 import { cacheService } from "@/dexie/cache-service";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { CachedMessage } from "@/dexie/db";
@@ -33,6 +34,8 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
   const { threadId } = useParams<{ threadId: string }>();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+
   const [error, setError] = useState<string | null>(null);
   const [cachedMessages, setCachedMessages] = useState<CachedMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -234,7 +237,7 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
       try {
         // Get the latest assistant message
         const latestAssistantMessage = aiMessages
-          .filter(msg => msg.role === "assistant")
+          .filter((msg) => msg.role === "assistant")
           .pop();
 
         if (latestAssistantMessage && latestAssistantMessage.content.trim()) {
@@ -249,11 +252,11 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
 
             try {
               // First check if the message exists in Dexie
-              const existingMessage = await cacheService.getMessages(
-                currentThreadId!,
-                userId,
-                false
-              ).then(messages => messages.find(m => m._id === latestAssistantMessage.id));
+              const existingMessage = await cacheService
+                .getMessages(currentThreadId!, userId, false)
+                .then((messages) =>
+                  messages.find((m) => m._id === latestAssistantMessage.id),
+                );
 
               if (!existingMessage) {
                 // Only create new message if we have content
@@ -277,7 +280,7 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
                 await cacheService.updateMessageContent(
                   latestAssistantMessage.id as Id<"messages">,
                   latestAssistantMessage.content,
-                  true // isStreaming
+                  true, // isStreaming
                 );
               }
             } catch (error) {
@@ -306,7 +309,7 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
   const displayMessages: Message[] = useMemo(() => {
     // If we're actively streaming, use AI messages as source of truth
     if (isAILoading && aiMessages.length > 0) {
-      return aiMessages.map(msg => ({
+      return aiMessages.map((msg) => ({
         _id: msg.id as Id<"messages">,
         _creationTime: Date.now(),
         threadId: currentThreadId || ("" as Id<"threads">),
@@ -353,15 +356,25 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
       const cachedMessageIds = formattedMessages.map((m) => m.id).sort();
 
       if (
-        JSON.stringify(currentMessageIds) !== JSON.stringify(cachedMessageIds) ||
-        formattedMessages.some((msg, i) => msg.content !== aiMessages[i]?.content)
+        JSON.stringify(currentMessageIds) !==
+          JSON.stringify(cachedMessageIds) ||
+        formattedMessages.some(
+          (msg, i) => msg.content !== aiMessages[i]?.content,
+        )
       ) {
         setMessages(formattedMessages);
       }
     } else if (!currentThreadId && aiMessages.length > 0) {
       setMessages([]);
     }
-  }, [cachedMessages, currentThreadId, isAILoading, isInitialized, setMessages, aiMessages]);
+  }, [
+    cachedMessages,
+    currentThreadId,
+    isAILoading,
+    isInitialized,
+    setMessages,
+    aiMessages,
+  ]);
 
   // Reset error when thread changes
   useEffect(() => {
@@ -446,7 +459,11 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
         sidebarOpen ? "lg:ml-0" : "lg:ml-0",
       )}
     >
-      <div className="flex-1 overflow-auto" ref={scrollRef}>
+      <div
+        className="flex-1 overflow-auto"
+        ref={scrollRef}
+        style={{ backgroundColor: theme === "light" ? "#f9f3f8" : undefined }}
+      >
         <ScrollArea className="custom-scrollbar h-full">
           <div className="flex min-h-full flex-col">
             {hasMessages ? (
@@ -472,7 +489,11 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
           </div>
         </ScrollArea>
       </div>
-      <div className="bg-card supports-backdrop-filter:bg-background/60 border-t-0 backdrop-blur-sm">
+
+      <div
+        className="supports-backdrop-filter:bg-background/60 border-t-0 backdrop-blur-sm"
+        style={{ backgroundColor: theme === "light" ? "#fbeff8" : undefined }}
+      >
         <ChatInput
           input={input}
           setInput={setInput}

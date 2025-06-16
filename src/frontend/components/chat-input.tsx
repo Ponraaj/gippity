@@ -3,6 +3,15 @@ import { Send, Paperclip, Square } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
+import { Message } from "ai";
+import { useTheme } from "next-themes";
+
+const models = [
+  "Gemini 2.5 Flash",
+  "GPT-4",
+  "Claude 3.5 Sonnet",
+  "GPT-3.5 Turbo",
+];
 
 interface ChatInputProps {
   input: string;
@@ -22,7 +31,7 @@ export function ChatInput({
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  const { theme } = useTheme();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -114,7 +123,12 @@ export function ChatInput({
               disabled={isLoading}
             />
 
-            <div className="border-primary bg-card mt-3 flex items-center justify-between border-t-0 pt-3">
+            <div 
+              className="mt-3 flex items-center justify-between pt-3"
+              style={{
+                borderColor: theme === "light" ? "#c66198" : undefined,
+              }}
+            >
               {/* Left side controls */}
               <div className="flex items-center gap-2">
                 <div className="text-muted-foreground bg-muted rounded px-2 py-1 text-sm">
@@ -127,9 +141,13 @@ export function ChatInput({
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={handleFileAttachment}
-                  disabled={isLoading}
+                  style={{
+                    backgroundColor: theme === "light" ? "#f9f3f8" : undefined,
+                  }}
                 >
-                  <Paperclip className="text-primary-foreground h-4 w-4" />
+                  <Paperclip className="h-4 w-4" 
+                    style={{ color: theme === "light" ? "#c66198" : undefined }}
+                  />
                 </Button>
               </div>
 
@@ -140,6 +158,10 @@ export function ChatInput({
                   variant="destructive"
                   onClick={handleStop}
                   className="h-9 w-9 p-0"
+                  style={{
+                    backgroundColor: theme === "light" ? "#a84470" : undefined,
+                    color: theme === "light" ? "white" : undefined,
+                  }}
                 >
                   <Square className="h-4 w-4" />
                 </Button>
@@ -148,7 +170,7 @@ export function ChatInput({
                   type="submit"
                   size="sm"
                   disabled={!input.trim()}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 w-9 p-0"
+                  className=" h-9 w-9 p-0"
                 >
                   <Send className="text-primary-foreground h-4 w-4" />
                 </Button>
