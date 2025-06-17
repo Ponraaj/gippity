@@ -72,16 +72,20 @@ export class CacheService {
       return await this.messageSyncInProgress.get(cacheKey)!;
     }
 
-    if (!forceRefresh) {
-      const cached = await db.messages
-        .where("threadId")
-        .equals(threadId)
-        .toArray();
+    // Always check local cache first
+    const cached = await db.messages
+      .where("threadId")
+      .equals(threadId)
+      .toArray();
 
-      if (cached.length > 0) {
-        // Sort manually since we got an array
-        cached.sort((a, b) => a.createdAt - b.createdAt);
+    if (cached.length > 0) {
+      // Sort manually since we got an array
+      cached.sort((a, b) => a.createdAt - b.createdAt);
 
+      // If force refresh, trigger background sync
+      if (forceRefresh) {
+        this.backgroundSync(() => this.syncMessages(threadId, userId));
+      } else {
         const lastSync = await this.getLastSync(cacheKey, userId);
         const cacheAge = Date.now() - lastSync;
 
@@ -91,12 +95,15 @@ export class CacheService {
           if (cacheAge > 1 * 60 * 1000) {
             this.backgroundSync(() => this.syncMessages(threadId, userId));
           }
-          return cached;
+        } else {
+          // Cache is too old, sync in background
+          this.backgroundSync(() => this.syncMessages(threadId, userId));
         }
       }
+      return cached;
     }
 
-    // Fetch from Convex and update cache
+    // No cached data, fetch from Convex and update cache
     return await this.syncMessages(threadId, userId);
   }
 
