@@ -125,13 +125,16 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
   }, [currentThreadId]);
 
   // Convert cached messages to AI SDK format
-  const initialMessages = cachedMessages
-    .filter((msg) => !msg.isStreaming) // Don't include streaming messages in initial
-    .map((msg) => ({
-      id: msg._id,
-      role: msg.role as "user" | "assistant" | "system",
-      content: msg.content,
-    }));
+  const initialMessages = useMemo(() => {
+    if (!isInitialized) return [];
+    return cachedMessages
+      .filter((msg) => !msg.isStreaming) // Don't include streaming messages in initial
+      .map((msg) => ({
+        id: msg._id,
+        role: msg.role as "user" | "assistant" | "system",
+        content: msg.content,
+      }));
+  }, [cachedMessages, isInitialized]);
 
   // Use AI SDK's useChat hook with thread-specific key
   const {
@@ -147,7 +150,7 @@ export function ChatArea({ sidebarOpen, userId }: ChatAreaProps) {
     api: "/api/chat",
     key: `thread-${currentThreadId || "new"}`,
     id: currentThreadId,
-    initialMessages: isInitialized ? initialMessages : [],
+    initialMessages,
     body: {
       userId,
       threadId: currentThreadId,
